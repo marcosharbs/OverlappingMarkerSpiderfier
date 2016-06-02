@@ -26,58 +26,71 @@ Demo
 
 See the [demo map](http://fritz-c.github.com/OverlappingMarkerSpiderfier/examples/) (the data is random: reload the map to reposition the markers).
 
-Download
+Installation
 --------
 
-Download [the compiled, minified JS source](http://jawj.github.com/OverlappingMarkerSpiderfier/bin/oms.min.js).
-
-**Please note: version 0.3 introduces a breaking change. The `willSpiderfy(marker)` and `markersThatWillAndWontSpiderfy()` methods have been replaced with the (similar, but different) `markersNearMarker(marker)` and `markersNearAnyOtherMarker()` methods.**
+Via npm:
+```
+npm install --save overlapping-marker-spiderfier
+```
 
 How to use
 ----------
 
-See the [demo map source](https://github.com/jawj/OverlappingMarkerSpiderfier/blob/gh-pages/demo.html), or follow along here for a slightly simpler usage with commentary.
+See the [demo map source](https://github.com/fritz-c/OverlappingMarkerSpiderfier/blob/gh-pages/examples/index.html), or follow along here for a slightly simpler usage with commentary.
 
 Create your map like normal:
 
-    var gm = google.maps;
-    var map = new gm.Map(document.getElementById('map_canvas'), {
-      mapTypeId: gm.MapTypeId.SATELLITE,
-      center: new gm.LatLng(50, 0), 
-      zoom: 6
-    });
+```js
+const gm = google.maps;
+const map = new gm.Map(document.getElementById('map_canvas'), {
+  mapTypeId: gm.MapTypeId.SATELLITE,
+  center: new gm.LatLng(50, 0),
+  zoom: 6
+});
+```
 
-Create an `OverlappingMarkerSpiderfier` instance:
+Require `OverlappingMarkerSpiderfier` and create an instance:
 
-    var oms = new OverlappingMarkerSpiderfier(map);
+```js
+import OverlappingMarkerSpiderfier from 'overlapping-marker-spiderfier';
+// ...
+const oms = new OverlappingMarkerSpiderfier(map);
+```
 
 Instead of adding click listeners to your markers directly via `google.maps.event.addListener`, add a global listener on the `OverlappingMarkerSpiderfier` instance instead. The listener will be passed the clicked marker as its first argument, and the Google Maps `event` object as its second.
 
-    var iw = new gm.InfoWindow();
-    oms.addListener('click', function(marker, event) {
-      iw.setContent(marker.desc);
-      iw.open(map, marker);
-    });
+```js
+const iw = new gm.InfoWindow();
+oms.addListener('click', function(marker, event) {
+  iw.setContent(marker.desc);
+  iw.open(map, marker);
+});
+```
 
 You can also add listeners on the `spiderfy` and `unspiderfy` events, which will be passed an array of the markers affected. In this example, we observe only the `spiderfy` event, using it to close any open `InfoWindow`:
 
-    oms.addListener('spiderfy', function(markers) {
-      iw.close();
-    });
+```js
+oms.addListener('spiderfy', function(markers) {
+  iw.close();
+});
+```
 
 Finally, tell the `OverlappingMarkerSpiderfier` instance about each marker as you add it, using the `addMarker` method:
 
-    for (var i = 0; i < window.mapData.length; i ++) {
-      var datum = window.mapData[i];
-      var loc = new gm.LatLng(datum.lat, datum.lon);
-      var marker = new gm.Marker({
-        position: loc,
-        title: datum.h,
-        map: map
-      });
-      marker.desc = datum.d;
-      oms.addMarker(marker);  // <-- here
-    }
+```js
+for (let i = 0; i < window.mapData.length; i ++) {
+  const datum = window.mapData[i];
+  const loc = new gm.LatLng(datum.lat, datum.lon);
+  const marker = new gm.Marker({
+    position: loc,
+    title: datum.h,
+    map: map
+  });
+  marker.desc = datum.d;
+  oms.addMarker(marker);  // <-- here
+}
+```
 
 Docs
 ----
@@ -102,7 +115,10 @@ By default, change events for each added marker's `position` and `visibility` ar
 
 However, if you know that you won't be moving and/or hiding any of the markers you add to this instance, you can save memory (a closure per marker in each case) by setting the options named `markersWontMove` and/or `markersWontHide` to `true` (or anything [truthy](http://isolani.co.uk/blog/javascript/TruthyFalsyAndTypeCasting)).
 
-For example, `var oms = new OverlappingMarkerSpiderfier(map, {markersWontMove: true, markersWontHide: true});`.
+For example,
+```js
+const oms = new OverlappingMarkerSpiderfier(map, {markersWontMove: true, markersWontHide: true});
+```
 
 **keepSpiderfied** (default: `false`)
 
@@ -212,11 +228,14 @@ These determine the usual and highlighted colours of the lines, where `mapType` 
 
 The defaults are as follows:
 
-    var mti = google.maps.MapTypeId;
-    legColors.usual[mti.HYBRID] = legColors.usual[mti.SATELLITE] = '#fff';
-    legColors.usual[mti.TERRAIN] = legColors.usual[mti.ROADMAP] = '#444';
-    legColors.highlighted[mti.HYBRID] = legColors.highlighted[mti.SATELLITE] = 
-      legColors.highlighted[mti.TERRAIN] = legColors.highlighted[mti.ROADMAP] = '#f00';
+
+```js
+const mti = google.maps.MapTypeId;
+legColors.usual[mti.HYBRID] = legColors.usual[mti.SATELLITE] = '#fff';
+legColors.usual[mti.TERRAIN] = legColors.usual[mti.ROADMAP] = '#444';
+legColors.highlighted[mti.HYBRID] = legColors.highlighted[mti.SATELLITE] =
+  legColors.highlighted[mti.TERRAIN] = legColors.highlighted[mti.ROADMAP] = '#f00';
+```
 
 You can also get and set any of the options noted in the constructor function documentation above as properties on an OverlappingMarkerSpiderfier instance. However, for some of these options (e.g. `markersWontMove`) modifications won't be applied retroactively.
 
