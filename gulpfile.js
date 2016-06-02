@@ -2,8 +2,10 @@ var gulp = require('gulp');
 var coffee = require('gulp-coffee');
 var gutil = require('gulp-util');
 var closureCompiler = require('gulp-closure-compiler');
+var gulpif = require('gulp-if');
+var connect = require('gulp-connect');
 
-function compile() {
+function compile(dev) {
   return gulp.src('./lib/*.coffee')
     .once('data', function() {gutil.log('Compile: start');})
     .once('end', function() {gutil.log('Compile: finish');})
@@ -21,12 +23,20 @@ function compile() {
         warning_level: 'QUIET'
       }
     }))
-    .pipe(gulp.dest('dist'));
+    .pipe(gulp.dest('dist'))
+    .pipe(gulpif(dev, connect.reload()));
 }
 
-gulp.task('default', function () {
-  gulp.watch('./lib/*.coffee', compile);
-  compile();
+gulp.task('default', ['connect'], function () {
+  gulp.watch('./examples/*.html', function() { gulp.src('./examples/*.html').pipe(connect.reload()); });
+  gulp.watch('./lib/*.coffee', function() { compile(true); });
+  compile(true);
+});
+
+gulp.task('connect', function() {
+  connect.server({
+    livereload: true,
+  });
 });
 
 gulp.task('build', compile);
