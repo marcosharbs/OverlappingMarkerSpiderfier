@@ -309,3 +309,5 @@ class @['OverlappingMarkerSpiderfier']
   @ProjHelper = (map) -> @setMap(map)
   @ProjHelper:: = new gm.OverlayView()
   @ProjHelper::['draw'] = ->  # dummy function
+
+module.exports = @['OverlappingMarkerSpiderfier']
