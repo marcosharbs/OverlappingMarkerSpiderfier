@@ -12,11 +12,10 @@ Note: The Google Maps API v3 must be included *before* this code
 class @['OverlappingMarkerSpiderfier']
   p = @::  # this saves a lot of repetition of .prototype that isn't optimized away
   x['VERSION'] = '0.3.3' for x in [@, p]  # better on @, but defined on p too for backward-compat
-
-  gm = undefined
-  ge = undefined
-  mt = undefined
-      
+  
+  gm = google.maps
+  ge = gm.event
+  mt = gm.MapTypeId
   twoPi = Math.PI * 2
   
   p['keepSpiderfied']  = no          # yes -> don't unspiderfy when a marker is selected
@@ -46,20 +45,10 @@ class @['OverlappingMarkerSpiderfier']
   
   lcU = p['legColors']['usual']
   lcH = p['legColors']['highlighted']
-
-  @['initializeGoogleMaps'] = (google) ->
-    gm = google.maps
-    ge = gm.event
-    mt = gm.MapTypeId
-    lcU[mt.HYBRID]  = lcU[mt.SATELLITE] = '#fff'
-    lcH[mt.HYBRID]  = lcH[mt.SATELLITE] = '#f00'
-    lcU[mt.TERRAIN] = lcU[mt.ROADMAP]   = '#444'
-    lcH[mt.TERRAIN] = lcH[mt.ROADMAP]   = '#f00'
-
-    # the ProjHelper object is just used to get the map's projection
-    @ProjHelper = (map) -> @setMap(map)
-    @ProjHelper:: = new gm.OverlayView()
-    @ProjHelper::['draw'] = ->  # dummy function
+  lcU[mt.HYBRID]  = lcU[mt.SATELLITE] = '#fff'
+  lcH[mt.HYBRID]  = lcH[mt.SATELLITE] = '#f00'
+  lcU[mt.TERRAIN] = lcU[mt.ROADMAP]   = '#444'
+  lcH[mt.TERRAIN] = lcH[mt.ROADMAP]   = '#f00'
   
   # Note: it's OK that this constructor comes after the properties, because a function defined by a 
   # function declaration can be used before the function declaration itself
@@ -311,3 +300,8 @@ class @['OverlappingMarkerSpiderfier']
     return arr.indexOf(obj) if arr.indexOf?
     (return i if o is obj) for o, i in arr
     -1
+  
+  # the ProjHelper object is just used to get the map's projection
+  @ProjHelper = (map) -> @setMap(map)
+  @ProjHelper:: = new gm.OverlayView()
+  @ProjHelper::['draw'] = ->  # dummy function
