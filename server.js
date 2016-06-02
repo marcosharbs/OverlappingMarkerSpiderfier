@@ -7,7 +7,7 @@ var port = 3000;
 var compiler = webpack(config);
 var server = new webpackDevServer(compiler, {
     hot: true,
-    noinfo: true,
+    quiet: true,
     publicPath: config.output.publicPath,
 });
 

@@ -2,14 +2,14 @@
   "name": "overlapping-marker-spiderfier",
   "version": "0.1.0",
   "description": "Deals with overlapping markers in Google Maps JS API v3, Google Earth-style",
-  "main": "dist/oms.js",
+  "main": "lib/oms.js",
   "scripts": {
     "clean": "rimraf lib dist",
     "start": "node server.js",
-    "build:commonjs": "node_modules/.bin/coffee src --out-dir lib",
-    "build:umd": "cross-env NODE_ENV=development webpack src/index.js dist/oms.js",
-    "build:umd:min": "cross-env NODE_ENV=production webpack src/index.js dist/oms.min.js",
-    "build": "npm run build:commonjs && npm run build:es && npm run build:umd && npm run build:umd:min",
+    "build:commonjs": "node_modules/.bin/coffee -bco lib src/oms.coffee",
+    "build:umd": "cross-env NODE_ENV=development webpack",
+    "build:umd:min": "cross-env NODE_ENV=production webpack",
+    "build": "npm run build:commonjs && npm run build:umd && npm run build:umd:min",
     "prepublish": "npm run clean && npm run build"
   },
   "repository": {

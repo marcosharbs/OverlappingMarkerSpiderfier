@@ -14,10 +14,10 @@ var config = {
         })
     ],
     output: {
-        path: path.join(__dirname, 'dist'),
-        publicPath: '/static/',
-        filename: 'bundle.js',
-        library: 'OverlappingMarkerSpiderfier',
+        path:          path.join(__dirname, 'dist'),
+        publicPath:    '/static/',
+        filename:      'oms.js',
+        library:       'OverlappingMarkerSpiderfier',
         libraryTarget: 'umd',
     },
     module: {
@@ -42,6 +42,8 @@ if (env === 'production') {
             }
         })
     );
+
+    config.output.filename = 'oms.min.js';
 } else {
     config.plugins.push(
         new webpack.HotModuleReplacementPlugin()
