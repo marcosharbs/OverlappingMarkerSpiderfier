@@ -26,6 +26,6 @@
     "gulp": "^3.9.0",
     "gulp-coffee": "^2.3.1",
     "gulp-util": "^3.0.6",
-    "gulp-closure-compiler": "^0.3.0"
+    "gulp-closure-compiler": "^0.4.0"
   }
 }
