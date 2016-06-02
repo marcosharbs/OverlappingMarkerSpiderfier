@@ -1,6 +1,6 @@
 {
   "name": "overlapping-marker-spiderfier",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Deals with overlapping markers in Google Maps JS API v3, Google Earth-style",
   "main": "lib/oms.js",
   "scripts": {
