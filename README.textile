@@ -126,6 +126,10 @@ This is the pixel distance between each marker in a circle shape.
 
 This is the pixel distance between each marker in a spiral shape.
 
+*lineToCenter* (default: @true@).
+
+When true, all lines point to the averaged center of the markers. When false, point the lines to the original positions of each marker.
+
 h3. Instance methods: managing markers
 
 Note: methods that have no obvious return value return the OverlappingMarkerSpiderfier instance they were called on, in case you want to chain method calls.

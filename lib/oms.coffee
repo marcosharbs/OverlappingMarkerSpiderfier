@@ -37,6 +37,8 @@ class @['OverlappingMarkerSpiderfier']
   p['highlightedLegZIndex'] = 20     # ensure highlighted leg is always on top
   p['event'] = 'click'               # Event to use when we want to trigger spiderify
   p['minZoomLevel'] = no             # Minimum zoom level necessary to trigger spiderify
+  p['lineToCenter'] = yes            # yes -> Point all the lines to the center of the circle or spiral
+                                     # no -> Point the lines to the original positions of each marker
   
   p['legWeight'] = 1.5
   p['legColors'] =
@@ -224,13 +226,15 @@ class @['OverlappingMarkerSpiderfier']
       @generatePtsSpiral(numFeet, bodyPt).reverse()  # match from outside in => less criss-crossing
     else
       @generatePtsCircle(numFeet, bodyPt)
+    centerLl = @ptToLl(bodyPt)
     spiderfiedMarkers = for footPt in footPts
       footLl = @ptToLl(footPt)
       nearestMarkerDatum = @minExtract(markerData, (md) => @ptDistanceSq(md.markerPt, footPt))
       marker = nearestMarkerDatum.marker
+      lineOrigin = if @['lineToCenter'] then centerLl else marker.position
       leg = new gm.Polyline
         map: @map
-        path: [marker.position, footLl]
+        path: [lineOrigin, footLl]
         strokeColor: @['legColors']['usual'][@map.mapTypeId]
         strokeWeight: @['legWeight']
         zIndex: @['usualLegZIndex']
