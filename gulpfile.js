@@ -1,11 +1,13 @@
-var gulp = require("gulp");
+var gulp = require('gulp');
 var coffee = require('gulp-coffee');
 var gutil = require('gulp-util');
 var closureCompiler = require('gulp-closure-compiler');
 
-gulp.task('default', function() {
-  gulp.src('./lib/*.coffee')
-    .pipe(coffee({bare: true}).on('error', gutil.log))
+function compile() {
+  return gulp.src('./lib/*.coffee')
+    .once('data', function() {gutil.log('Compile: start');})
+    .once('end', function() {gutil.log('Compile: finish');})
+    .pipe(coffee({ bare: true }).on('error', gutil.log))
     .pipe(gulp.dest('dist'))
     .pipe(closureCompiler({
       compilerPath: 'bower_components/closure-compiler/compiler.jar',
@@ -19,6 +21,12 @@ gulp.task('default', function() {
         warning_level: 'QUIET'
       }
     }))
-    .pipe(gulp.dest('dist'))
+    .pipe(gulp.dest('dist'));
+}
 
+gulp.task('default', function () {
+  gulp.watch('./lib/*.coffee', compile);
+  compile();
 });
+
+gulp.task('build', compile);
