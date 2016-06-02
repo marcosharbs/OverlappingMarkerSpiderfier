@@ -19,11 +19,11 @@ this['OverlappingMarkerSpiderfier'] = (function() {
     x['VERSION'] = '0.3.3';
   }
 
-  gm = void 0;
+  gm = google.maps;
 
-  ge = void 0;
+  ge = gm.event;
 
-  mt = void 0;
+  mt = gm.MapTypeId;
 
   twoPi = Math.PI * 2;
 
@@ -68,20 +68,13 @@ this['OverlappingMarkerSpiderfier'] = (function() {
 
   lcH = p['legColors']['highlighted'];
 
-  _Class['initializeGoogleMaps'] = function(google) {
-    gm = google.maps;
-    ge = gm.event;
-    mt = gm.MapTypeId;
-    lcU[mt.HYBRID] = lcU[mt.SATELLITE] = '#fff';
-    lcH[mt.HYBRID] = lcH[mt.SATELLITE] = '#f00';
-    lcU[mt.TERRAIN] = lcU[mt.ROADMAP] = '#444';
-    lcH[mt.TERRAIN] = lcH[mt.ROADMAP] = '#f00';
-    this.ProjHelper = function(map) {
-      return this.setMap(map);
-    };
-    this.ProjHelper.prototype = new gm.OverlayView();
-    return this.ProjHelper.prototype['draw'] = function() {};
-  };
+  lcU[mt.HYBRID] = lcU[mt.SATELLITE] = '#fff';
+
+  lcH[mt.HYBRID] = lcH[mt.SATELLITE] = '#f00';
+
+  lcU[mt.TERRAIN] = lcU[mt.ROADMAP] = '#444';
+
+  lcH[mt.TERRAIN] = lcH[mt.ROADMAP] = '#f00';
 
   function _Class(map1, opts) {
     var e, k, l, len1, ref1, v;
@@ -555,6 +548,14 @@ this['OverlappingMarkerSpiderfier'] = (function() {
     }
     return -1;
   };
+
+  _Class.ProjHelper = function(map) {
+    return this.setMap(map);
+  };
+
+  _Class.ProjHelper.prototype = new gm.OverlayView();
+
+  _Class.ProjHelper.prototype['draw'] = function() {};
 
   return _Class;
 
