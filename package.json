@@ -1,6 +1,6 @@
 {
   "name": "overlapping-marker-spiderfier",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Deals with overlapping markers in Google Maps JS API v3, Google Earth-style",
   "main": "lib/oms.js",
   "scripts": {
@@ -14,7 +14,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/jawj/OverlappingMarkerSpiderfier.git"
+    "url": "https://github.com/fritz-c/OverlappingMarkerSpiderfier.git"
   },
   "keywords": [
     "overlapping",
@@ -25,9 +25,9 @@
   "author": "George MacKerron",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/jawj/OverlappingMarkerSpiderfier/issues"
+    "url": "https://github.com/fritz-c/OverlappingMarkerSpiderfier/issues"
   },
-  "homepage": "https://github.com/jawj/OverlappingMarkerSpiderfier",
+  "homepage": "https://github.com/fritz-c/OverlappingMarkerSpiderfier",
   "devDependencies": {
     "coffee-loader": "^0.7.2",
     "coffee-script": "^1.10.0",
