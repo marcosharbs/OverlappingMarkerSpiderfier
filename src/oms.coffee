@@ -22,6 +22,10 @@ class @['OverlappingMarkerSpiderfier']
   p['markersWontHide'] = no          # yes -> a promise you won't hide markers, so we needn't check
   p['markersWontMove'] = no          # yes -> a promise you won't move markers, so we needn't check
 
+  p['nudgeStackedMarkers'] = yes     # yes -> nudge up markers that are perfectly stacked
+  p['minNudgeZoomLevel'] = 0
+  p['markerCountInBaseNudgeLevel'] = 9
+
   p['nearbyDistance'] = 20           # spiderfy markers within this range of the one clicked, in px
   
   p['circleSpiralSwitchover'] = 9    # show spiral instead of circle from this marker count upwards
@@ -61,7 +65,11 @@ class @['OverlappingMarkerSpiderfier']
     @listeners = {}
     for e in ['click', 'zoom_changed', 'maptypeid_changed']
       ge.addListener(@map, e, => @['unspiderfy']())
-    
+    if @['nudgeStackedMarkers']
+      ge.addListenerOnce @map, 'idle', =>
+        ge.addListener(@map, 'zoom_changed', => @mapZoomChangeListener())
+        @mapZoomChangeListener()
+
   p.initMarkerArrays = ->
     @markers = []
     @markerListenerRefs = []
@@ -79,9 +87,76 @@ class @['OverlappingMarkerSpiderfier']
     @  # return self, for chaining
 
   p.markerChangeListener = (marker, positionChanged) ->
-    if marker['_omsData']? and (positionChanged or not marker.getVisible()) and not (@spiderfying? or @unspiderfying?)
+    if marker['_omsData']? and not marker['_omsData'].nudged and (positionChanged or not marker.getVisible()) and not (@spiderfying? or @unspiderfying?)
       @['unspiderfy'](if positionChanged then marker else null)
-      
+
+  p.countsPerLevel = [1,1]
+  p.levelsByCount = []
+
+  p.getCountPerNudgeLevel = (level) ->
+    return @countsPerLevel[level] if @countsPerLevel[level]?
+
+    @countsPerLevel[level] = @getCountPerNudgeLevel(level - 1) + Math.pow(2, level - 2) * @['markerCountInBaseNudgeLevel']
+    return @countsPerLevel[level]
+
+  p.getNudgeLevel = (markerIndex) ->
+    return @levelsByCount[markerIndex] if @levelsByCount[markerIndex]?
+
+    level = 0
+    while markerIndex >= @countsPerLevel[level]
+      if level + 1 >= @countsPerLevel.length
+        @getCountPerNudgeLevel(level + 1)
+      level++
+    @levelsByCount[markerIndex] = level - 1
+    return @levelsByCount[markerIndex]
+
+  p.nudgeAllMarkers = ->
+    positions = {}
+
+    for m,i in @markers
+      needsNudge = no
+      pos = @llToPt(m['_omsData']?.usualPosition ? m.position)
+      originalPos = {x: pos.x, y: pos.y}
+      posKey = () -> Math.floor(pos.x) + ',' + Math.floor(pos.y)
+      while positions.hasOwnProperty(posKey())
+        direction = positions[posKey()]
+        if positions.hasOwnProperty(posKey())
+          positions[posKey()] += 1
+        else
+          positions[posKey()] = 1
+
+        ringLevel = @getNudgeLevel(direction)
+        pos.x = pos.x + Math.sin(twoPi * direction / @['markerCountInBaseNudgeLevel'] / ringLevel) * 24 * ringLevel
+        pos.y = pos.y + Math.cos(twoPi * direction / @['markerCountInBaseNudgeLevel'] / ringLevel) * 24 * ringLevel
+        @nudged = yes
+        needsNudge = yes
+
+      if needsNudge
+        m['_omsData'] =
+          usualPosition: m['_omsData']?.usualPosition ? m.position
+          nudged:        yes
+        m.setPosition(@ptToLl(pos))
+      else if m['_omsData']? && m['_omsData'].nudged
+        m.setPosition(m['_omsData'].usualPosition)
+        delete m['_omsData']
+
+      if not positions.hasOwnProperty(posKey())
+        positions[posKey()] = 1
+
+  p.resetNudgedMarkers = ->
+    return if not @nudged
+    for m in @markers
+      if m['_omsData']? and m['_omsData'].nudged
+        m.setPosition(m['_omsData'].usualPosition)
+        delete m['_omsData']
+    delete @nudged
+
+
+  p.mapZoomChangeListener = () ->
+    if @['minNudgeZoomLevel'] and @map.getZoom() < @['minNudgeZoomLevel']
+      return @resetNudgedMarkers()
+    @nudgeAllMarkers(@markers)
+
   p['getMarkers'] = -> @markers[0..]  # returns a copy, so no funny business
 
   p['removeMarker'] = (marker) ->
@@ -140,7 +215,7 @@ class @['OverlappingMarkerSpiderfier']
       pt
   
   p.spiderListener = (marker, event) ->
-    markerSpiderfied = marker['_omsData']?
+    markerSpiderfied = marker['_omsData']? and not marker['_omsData'].nudged
     unless markerSpiderfied and @['keepSpiderfied']
       if this['event'] is 'mouseover'
         $this = @
@@ -238,8 +313,8 @@ class @['OverlappingMarkerSpiderfier']
         strokeColor: @['legColors']['usual'][@map.mapTypeId]
         strokeWeight: @['legWeight']
         zIndex: @['usualLegZIndex']
-      marker['_omsData'] = 
-        usualPosition: marker.position
+      marker['_omsData'] =
+        usualPosition: marker['_omsData']?.usualPosition ? marker.position,
         leg: leg
       unless @['legColors']['highlighted'][@map.mapTypeId] is
              @['legColors']['usual'][@map.mapTypeId]
@@ -260,7 +335,7 @@ class @['OverlappingMarkerSpiderfier']
     unspiderfiedMarkers = []
     nonNearbyMarkers = []
     for marker in @markers
-      if marker['_omsData']?
+      if marker['_omsData']? and not marker['_omsData'].nudged
         marker['_omsData'].leg.setMap(null)
         marker.setPosition(marker['_omsData'].usualPosition) unless marker is markerNotToMove
         marker.setZIndex(null)
@@ -275,6 +350,7 @@ class @['OverlappingMarkerSpiderfier']
     delete @unspiderfying
     delete @spiderfied
     @trigger('unspiderfy', unspiderfiedMarkers, nonNearbyMarkers)
+    @nudgeAllMarkers() if @['nudgeStackedMarkers']
     @  # return self, for chaining
   
   p.ptDistanceSq = (pt1, pt2) -> 
