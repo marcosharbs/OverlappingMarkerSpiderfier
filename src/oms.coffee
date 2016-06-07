@@ -5,13 +5,8 @@ Released under the MIT licence: http://opensource.org/licenses/mit-license
 Note: The Google Maps API v3 must be included *before* this code
 ###
 
-# NB. string literal properties -- object['key'] -- are for Closure Compiler ADVANCED_OPTIMIZATION
-
-#return unless this['google']?['maps']?  # return from wrapper func without doing anything
-
 class @['OverlappingMarkerSpiderfier']
   p = @::  # this saves a lot of repetition of .prototype that isn't optimized away
-  x['VERSION'] = '0.3.3' for x in [@, p]  # better on @, but defined on p too for backward-compat
   
   gm = google.maps
   ge = gm.event
@@ -91,7 +86,19 @@ class @['OverlappingMarkerSpiderfier']
       listenerRefs.push(ge.addListener(marker, 'position_changed', => @markerChangeListener(marker, yes)))
     @markerListenerRefs.push(listenerRefs)
     @markers.push(marker)
+    @requestNudge() if @isNudgingActive()
     @  # return self, for chaining
+
+  p.nudgeTimeout = null
+  p.requestNudge = ->
+    clearTimeout(@nudgeTimeout) if @nudgeTimeout
+    @nudgeTimeout = setTimeout(
+      => @nudgeAllMarkers(),
+      10
+    )
+
+  p.isNudgingActive = ->
+    @['nudgeStackedMarkers'] and not (@['minNudgeZoomLevel'] and @map.getZoom() < @['minNudgeZoomLevel'])
 
   p.markerChangeListener = (marker, positionChanged) ->
     if marker['_omsData']? and not marker['_omsData'].nudged and (positionChanged or not marker.getVisible()) and not (@spiderfying? or @unspiderfying?)
@@ -118,6 +125,8 @@ class @['OverlappingMarkerSpiderfier']
     return @levelsByCount[markerIndex]
 
   p.nudgeAllMarkers = ->
+    return if not @isNudgingActive()
+
     positions = {}
     bucketSize = 1 / ((1 + @['nudgeBucketSize']) * @['nudgeRadius'])
     getKey = (pos) => Math.floor(pos.x * bucketSize) + ',' + Math.floor(pos.y * bucketSize)
@@ -163,7 +172,7 @@ class @['OverlappingMarkerSpiderfier']
   p.mapZoomChangeListener = () ->
     if @['minNudgeZoomLevel'] and @map.getZoom() < @['minNudgeZoomLevel']
       return @resetNudgedMarkers()
-    @nudgeAllMarkers(@markers)
+    @requestNudge()
 
   p['getMarkers'] = -> @markers[0..]  # returns a copy, so no funny business
 
@@ -175,6 +184,7 @@ class @['OverlappingMarkerSpiderfier']
     ge.removeListener(listenerRef) for listenerRef in listenerRefs
     delete marker['_oms']
     @markers.splice(i, 1)
+    @requestNudge() if @isNudgingActive()
     @  # return self, for chaining
     
   p['clearMarkers'] = ->
