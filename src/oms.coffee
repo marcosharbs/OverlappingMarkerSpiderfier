@@ -25,10 +25,10 @@ class @['OverlappingMarkerSpiderfier']
   p['spiderfiedShadowColor'] = 'white' # [valid color like 'black' or '#000', or falsey for no shadow] ->
                                        # Show a shadow underneath the spiderfied markers
 
-  p['nudgeStackedMarkers'] = yes     # yes -> nudge up markers that are perfectly stacked
-  p['minNudgeZoomLevel'] = 8
-  p['nudgeRadius'] = 1
-  p['markerCountInBaseNudgeLevel'] = 9
+  p['nudgeStackedMarkers'] = yes       # yes -> nudge up markers that are perfectly stacked
+  p['minNudgeZoomLevel'] = 8           # The minimum zoom level at which to nudge markers
+  p['nudgeRadius'] = 1                 # The distance of the nudged marker from its original position
+  p['markerCountInBaseNudgeLevel'] = 9 # The number of markers in the closest ring to the original marker
 
   p['nearbyDistance'] = 20           # spiderfy markers within this range of the one clicked, in px
   

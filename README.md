@@ -1,25 +1,7 @@
 Overlapping Marker Spiderfier for Google Maps API v3
 ====================================================
 
-**Ever noticed how, in [Google Earth](http://earth.google.com), marker pins that overlap each other spring apart gracefully when you click them, so you can pick the one you meant?**
-
-**And ever noticed how, when using the [Google Maps API](http://code.google.com/apis/maps/documentation/javascript/), the same thing doesn't happen?**
-
-This code makes Google Maps API **version 3** map markers behave in that Google Earth way (minus the animation). Small numbers of markers (yes, up to 8) spiderfy into a circle. Larger numbers fan out into a more space-efficient spiral.
-
-The compiled code has no dependencies beyond Google Maps. And it's under 3K when compiled out of [CoffeeScript](http://jashkenas.github.com/coffee-script/), minified with Google's [Closure Compiler](http://code.google.com/closure/compiler/) and gzipped.
-
-I wrote it as part of the data download feature for [Mappiness](http://www.mappiness.org.uk/maps/).
-
-**There's now also [a port for the Leaflet maps API](https://github.com/jawj/OverlappingMarkerSpiderfier-Leaflet)**
-
-### Doesn't clustering solve this problem?
-
-You may have seen the [marker clustering library](http://google-maps-utility-library-v3.googlecode.com/svn/trunk/markerclusterer/docs/reference.html), which also helps deal with markers that are close together.
-
-That might be what you want. However, it probably **isn't** what you want (or isn't the only thing you want) if you have markers that could be in the exact same location, or close enough to overlap even at the maximum zoom level. In that case, clustering won't help your users see and/or click on the marker they're looking for.
-
-(I'm told that the OverlappingMarkerSpiderfier also plays nice with clustering -- i.e. once you get down to a zoom level where individual markers are shown, these markers then spiderfy happily -- but I haven't yet tried it myself).
+Customized fork of [jawj/OverlappingMarkerSpiderfier](https://github.com/jawj/OverlappingMarkerSpiderfier)
 
 Demo
 ----
@@ -42,10 +24,8 @@ See the [demo map source](https://github.com/fritz-c/OverlappingMarkerSpiderfier
 Create your map like normal:
 
 ```js
-const gm = google.maps;
-const map = new gm.Map(document.getElementById('map_canvas'), {
-  mapTypeId: gm.MapTypeId.SATELLITE,
-  center: new gm.LatLng(50, 0),
+const map = new google.maps.Map(document.getElementById('map_canvas'), {
+  center: {lat: 50, lng: 0},
   zoom: 6
 });
 ```
@@ -55,13 +35,14 @@ Require `OverlappingMarkerSpiderfier` and create an instance:
 ```js
 import OverlappingMarkerSpiderfier from 'overlapping-marker-spiderfier';
 // ...
-const oms = new OverlappingMarkerSpiderfier(map);
+const options = { legWeight: 3 }; // Just an example of options - please set your own if necessary
+const oms = new OverlappingMarkerSpiderfier(map, options);
 ```
 
 Instead of adding click listeners to your markers directly via `google.maps.event.addListener`, add a global listener on the `OverlappingMarkerSpiderfier` instance instead. The listener will be passed the clicked marker as its first argument, and the Google Maps `event` object as its second.
 
 ```js
-const iw = new gm.InfoWindow();
+const iw = new google.maps.InfoWindow();
 oms.addListener('click', function(marker, event) {
   iw.setContent(marker.desc);
   iw.open(map, marker);
@@ -79,15 +60,11 @@ oms.addListener('spiderfy', function(markers) {
 Finally, tell the `OverlappingMarkerSpiderfier` instance about each marker as you add it, using the `addMarker` method:
 
 ```js
-for (let i = 0; i < window.mapData.length; i ++) {
-  const datum = window.mapData[i];
-  const loc = new gm.LatLng(datum.lat, datum.lon);
-  const marker = new gm.Marker({
-    position: loc,
-    title: datum.h,
+for (let i = 0; i < markerPositions.length; i ++) {
+  const marker = new google.maps.Marker({
+    position: markerPositions[i],
     map: map
   });
-  marker.desc = datum.d;
   oms.addMarker(marker);  // <-- here
 }
 ```
@@ -99,56 +76,33 @@ Docs
 
 The `google.maps` object must be available when this code runs -- i.e. put the Google Maps API &lt;script&gt; tag before this one.
 
-The Google Maps API code changes frequently. Some earlier versions had broken support for z-indices, and the 'frozen' versions appear not to be as frozen as you'd like. At this moment, the 'stable' version 3.7 seems to work well, but do test with whatever version you fix on.
-
 ### Construction
 
     new OverlappingMarkerSpiderfier(map, options)
 
 Creates an instance associated with `map` (a `google.maps.Map`).
 
-The `options` argument is an optional `Object` specifying any options you want changed from their defaults. The available options are:
+The `options` argument is an optional `Object` specifying any options you want changed from their defaults. 
 
-**markersWontMove** and **markersWontHide** (defaults: `false`)
+## Options
 
-By default, change events for each added marker's `position` and `visibility` are observed (so that, if a spiderfied marker is moved or hidden, all spiderfied markers are unspiderfied, and the new position is respected where applicable).
-
-However, if you know that you won't be moving and/or hiding any of the markers you add to this instance, you can save memory (a closure per marker in each case) by setting the options named `markersWontMove` and/or `markersWontHide` to `true` (or anything [truthy](http://isolani.co.uk/blog/javascript/TruthyFalsyAndTypeCasting)).
-
-For example,
-```js
-const oms = new OverlappingMarkerSpiderfier(map, {markersWontMove: true, markersWontHide: true});
-```
-
-**keepSpiderfied** (default: `false`)
-
-By default, the OverlappingMarkerSpiderfier works like Google Earth, in that when you click a spiderfied marker, the markers unspiderfy before any other action takes place.
-
-Since this can make it tricky for the user to work through a set of markers one by one, you can override this behaviour by setting the `keepSpiderfied` option to `true`.
-
-**nearbyDistance** (default: `20`).
-
-This is the pixel radius within which a marker is considered to be overlapping a clicked marker.
-
-**circleSpiralSwitchover** (default: `9`)
-
-This is the lowest number of markers that will be fanned out into a spiral instead of a circle. Set this to `0` to always get spirals, or `Infinity` for all circles.
-
-**legWeight** (default: `1.5`)
-
-This determines the thickness of the lines joining spiderfied markers to their original locations.
-
-**circleFootSeparation** (default: `23`).
-
-This is the pixel distance between each marker in a circle shape.
-
-**spiralFootSeparation** (default: `26`).
-
-This is the pixel distance between each marker in a spiral shape.
-
-**lineToCenter** (default: `true`).
-
-When true, all lines point to the averaged center of the markers. When false, point the lines to the original positions of each marker.
+Property                    | Type                    | Default   | Description
+:---------------------------|:-----------------------:|:---------:|:------------
+keepSpiderfied              | bool                    | `false`   | By default, the OverlappingMarkerSpiderfier works like Google Earth, in that when you click a spiderfied marker, the markers unspiderfy before any other action takes place.
+minZoomLevel                | number or `false`       | `false`   | Minimum zoom level necessary to trigger spiderify
+nearbyDistance              | number                  | `20`      | This is the pixel radius within which a marker is considered to be overlapping a clicked marker.
+circleSpiralSwitchover      | number                  | `9`       | This is the lowest number of markers that will be fanned out into a spiral instead of a circle. Set this to `0` to always get spirals, or `Infinity` for all circles.
+legWeight                   | number                  | `1.5`     | This determines the thickness of the lines joining spiderfied markers to their original locations.
+circleFootSeparation        | number                  | `23`      | This is the pixel distance between each marker in a circle shape.
+spiralFootSeparation        | number                  | `26`      | This is the pixel distance between each marker in a spiral shape.
+nudgeStackedMarkers         | bool                    | `true`    | Nudge markers that are stacked right on top of each other, so markers aren't overlooked
+minNudgeZoomLevel           | number                  | `8`       | The minimum zoom level at which to nudge markers
+nudgeRadius                 | number                  | `1`       | The distance of the nudged marker from its original position
+markerCountInBaseNudgeLevel | number                  | `9`       | The number of markers in the closest ring to the original marker
+lineToCenter                | bool                    | `true`    | When true, all lines point to the averaged center of the markers. When false, point the lines to the original positions of each marker.
+spiderfiedShadowColor       | color string or `false` | `'white'` | Set the color of the shadow underneath the spiderfied markers, or to false to disable
+markersWontMove             | bool                    | `false`   | See [Optimizations](#optimizations)
+markersWontHide             | bool                    | `false`   | See [Optimizations](#optimizations)
 
 ### Instance methods: managing markers
 
@@ -239,18 +193,20 @@ legColors.highlighted[mti.HYBRID] = legColors.highlighted[mti.SATELLITE] =
 
 You can also get and set any of the options noted in the constructor function documentation above as properties on an OverlappingMarkerSpiderfier instance. However, for some of these options (e.g. `markersWontMove`) modifications won't be applied retroactively.
 
-How to build locally
-====================
+### Optimizations
+By default, change events for each added marker's `position` and `visibility` are observed (so that, if a spiderfied marker is moved or hidden, all spiderfied markers are unspiderfied, and the new position is respected where applicable).
 
-    npm install
-    npm install -g bower
-    bower install
-    npm install -g gulp
-    gulp
+However, if you know that you won't be moving and/or hiding any of the markers you add to this instance, you can save memory (a closure per marker in each case) by setting the options named `markersWontMove` and/or `markersWontHide` to `true`.
 
-Licence
+### Local dev
+```sh
+npm install
+npm start # Starts a webpack dev server with livereload
+```
+
+License
 -------
 
-This software is released under the [MIT licence](http://www.opensource.org/licenses/mit-license.php).
+This software is released under the [MIT License](http://www.opensource.org/licenses/mit-license.php).
 
-Finally, if you want to say thanks, I am on [Gittip](https://www.gittip.com/jawj).
+Finally, if you want to say thanks, the original author is on [Gittip](https://www.gittip.com/jawj).
