@@ -29,6 +29,9 @@ class @['OverlappingMarkerSpiderfier']
   p['minNudgeZoomLevel'] = 8           # The minimum zoom level at which to nudge markers
   p['nudgeRadius'] = 1                 # The distance of the nudged marker from its original position
   p['markerCountInBaseNudgeLevel'] = 9 # The number of markers in the closest ring to the original marker
+  p['nudgeBucketSize'] = 12            # The size of the buckets arranged in a grid to use
+                                       # in determining which markers need to be nudged
+                                       # (0 means nudging only occurs when icons are perfectly overlapped)
 
   p['nearbyDistance'] = 20           # spiderfy markers within this range of the one clicked, in px
   
@@ -116,23 +119,23 @@ class @['OverlappingMarkerSpiderfier']
 
   p.nudgeAllMarkers = ->
     positions = {}
-
+    bucketSize = 1 / ((1 + @['nudgeBucketSize']) * @['nudgeRadius'])
+    getKey = (pos) => Math.floor(pos.x * bucketSize) + ',' + Math.floor(pos.y * bucketSize)
     for m,i in @markers
       needsNudge = no
       pos = @llToPt(m['_omsData']?.usualPosition ? m.position)
       originalPos = {x: pos.x, y: pos.y}
-      posKey = () -> Math.floor(pos.x) + ',' + Math.floor(pos.y)
-      while positions.hasOwnProperty(posKey())
-        direction = positions[posKey()]
-        if positions.hasOwnProperty(posKey())
-          positions[posKey()] += 1
+      while positions.hasOwnProperty(getKey(pos))
+        direction = positions[getKey(pos)]
+        if positions.hasOwnProperty(getKey(pos))
+          positions[getKey(pos)] += 1
         else
-          positions[posKey()] = 1
+          positions[getKey(pos)] = 1
 
         ringLevel = @getNudgeLevel(direction)
         radius = 20 * @['nudgeRadius'] * ringLevel
-        pos.x = pos.x + Math.sin(twoPi * direction / @['markerCountInBaseNudgeLevel'] / ringLevel) * radius
-        pos.y = pos.y + Math.cos(twoPi * direction / @['markerCountInBaseNudgeLevel'] / ringLevel) * radius
+        pos.x = originalPos.x + Math.sin(twoPi * direction / @['markerCountInBaseNudgeLevel'] / ringLevel) * radius
+        pos.y = originalPos.y + Math.cos(twoPi * direction / @['markerCountInBaseNudgeLevel'] / ringLevel) * radius
         @nudged = yes
         needsNudge = yes
 
@@ -145,8 +148,8 @@ class @['OverlappingMarkerSpiderfier']
         m.setPosition(m['_omsData'].usualPosition)
         delete m['_omsData']
 
-      if not positions.hasOwnProperty(posKey())
-        positions[posKey()] = 1
+      if not positions.hasOwnProperty(getKey(pos))
+        positions[getKey(pos)] = 1
 
   p.resetNudgedMarkers = ->
     return if not @nudged

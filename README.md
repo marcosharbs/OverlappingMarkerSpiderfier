@@ -99,6 +99,7 @@ nudgeStackedMarkers         | bool                    | `true`    | Nudge marker
 minNudgeZoomLevel           | number                  | `8`       | The minimum zoom level at which to nudge markers
 nudgeRadius                 | number                  | `1`       | The distance of the nudged marker from its original position
 markerCountInBaseNudgeLevel | number                  | `9`       | The number of markers in the closest ring to the original marker
+nudgeBucketSize             | number                  | `12`      | The size of the buckets arranged in a grid to use in determining which markers need to be nudged (0 means nudging only occurs when icons are perfectly overlapped)
 lineToCenter                | bool                    | `true`    | When true, all lines point to the averaged center of the markers. When false, point the lines to the original positions of each marker.
 spiderfiedShadowColor       | color string or `false` | `'white'` | Set the color of the shadow underneath the spiderfied markers, or to false to disable
 markersWontMove             | bool                    | `false`   | See [Optimizations](#optimizations)

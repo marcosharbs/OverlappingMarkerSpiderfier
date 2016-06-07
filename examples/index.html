@@ -85,10 +85,10 @@
   };
   // randomize some overlapping map data -- more normally we'd load some JSON data instead
   var baseJitter = 2.5;
-  var clusterJitterMax = 0.1;
+  var clusterJitterMax = 0.001;
   var rnd = Math.random;
   var data = [];
-  var clusterSizes = [1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2,2, 3, 3, 4, 5, 6, 7, 8, 9, 12, 18, 24];
+  var clusterSizes = [1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2,2, 3, 3, 4, 5, 6, 7, 8, 9, 12, 18, 24, 124];
   for (var i = 0; i < clusterSizes.length; i++) {
     var baseLon = -1 - baseJitter / 2 + rnd() * baseJitter;
     var baseLat = 52 - baseJitter / 2 + rnd() * baseJitter;
