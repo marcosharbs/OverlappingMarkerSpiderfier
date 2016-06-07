@@ -22,8 +22,11 @@ class @['OverlappingMarkerSpiderfier']
   p['markersWontHide'] = no          # yes -> a promise you won't hide markers, so we needn't check
   p['markersWontMove'] = no          # yes -> a promise you won't move markers, so we needn't check
 
+  p['spiderfiedShadowColor'] = 'white' # [valid color like 'black' or '#000', or falsey for no shadow] ->
+                                       # Show a shadow underneath the spiderfied markers
+
   p['nudgeStackedMarkers'] = yes     # yes -> nudge up markers that are perfectly stacked
-  p['minNudgeZoomLevel'] = 0
+  p['minNudgeZoomLevel'] = 8
   p['markerCountInBaseNudgeLevel'] = 9
 
   p['nearbyDistance'] = 20           # spiderfy markers within this range of the one clicked, in px
@@ -281,15 +284,26 @@ class @['OverlappingMarkerSpiderfier']
     m for m, i in @markers when mData[i].willSpiderfy
   
   p.makeHighlightListenerFuncs = (marker) ->
-    highlight: 
-      => marker['_omsData'].leg.setOptions
+    highlight: =>
+      marker['_omsData'].leg.setOptions
         strokeColor: @['legColors']['highlighted'][@map.mapTypeId]
         zIndex: @['highlightedLegZIndex']
-    unhighlight: 
-      => marker['_omsData'].leg.setOptions
+      if marker['_omsData'].shadow?
+        icon = marker['_omsData'].shadow.getIcon()
+        icon.fillOpacity = 0.8
+        marker['_omsData'].shadow.setOptions
+          icon: icon
+
+    unhighlight: =>
+      marker['_omsData'].leg.setOptions
         strokeColor: @['legColors']['usual'][@map.mapTypeId]
         zIndex: @['usualLegZIndex']
-  
+      if marker['_omsData'].shadow?
+        icon = marker['_omsData'].shadow.getIcon()
+        icon.fillOpacity = 0.3
+        marker['_omsData'].shadow.setOptions
+          icon: icon
+
   p.spiderfy = (markerData, nonNearbyMarkers) ->
     if @['minZoomLevel'] and @map.getZoom() < @['minZoomLevel']
       return no
@@ -316,6 +330,20 @@ class @['OverlappingMarkerSpiderfier']
       marker['_omsData'] =
         usualPosition: marker['_omsData']?.usualPosition ? marker.position,
         leg: leg
+
+      if @['spiderfiedShadowColor']
+        marker['_omsData'].shadow = new gm.Marker
+          position: footLl
+          map: @map
+          clickable: false
+          zIndex: -2
+          icon:
+            path: google.maps.SymbolPath.CIRCLE
+            fillOpacity: 0.3
+            fillColor: @['spiderfiedShadowColor']
+            strokeWeight: 0
+            scale: 20
+
       unless @['legColors']['highlighted'][@map.mapTypeId] is
              @['legColors']['usual'][@map.mapTypeId]
         highlightListenerFuncs = @makeHighlightListenerFuncs(marker)
@@ -337,6 +365,7 @@ class @['OverlappingMarkerSpiderfier']
     for marker in @markers
       if marker['_omsData']? and not marker['_omsData'].nudged
         marker['_omsData'].leg.setMap(null)
+        marker['_omsData'].shadow?.setMap(null)
         marker.setPosition(marker['_omsData'].usualPosition) unless marker is markerNotToMove
         marker.setZIndex(null)
         listeners = marker['_omsData'].hightlightListeners
@@ -350,7 +379,7 @@ class @['OverlappingMarkerSpiderfier']
     delete @unspiderfying
     delete @spiderfied
     @trigger('unspiderfy', unspiderfiedMarkers, nonNearbyMarkers)
-    @nudgeAllMarkers() if @['nudgeStackedMarkers']
+    @nudgeAllMarkers() if @nudged
     @  # return self, for chaining
   
   p.ptDistanceSq = (pt1, pt2) -> 
