@@ -28,6 +28,7 @@
       {
         markersWontMove: true,
         markersWontHide: true,
+        nudgeRadius:     0.5,
       });
 
     var usualColor = 'eebb22';
@@ -35,7 +36,7 @@
     var iconWithColor = function(color) {
       return 'http://chart.googleapis.com/chart?chst=d_map_xpin_letter&chld=pin|+|' +
         color + '|000000|ffff00';
-    }
+    };
     var shadow = new gm.MarkerImage(
       'https://www.google.com/intl/en_ALL/mapfiles/shadow50.png',
       new gm.Size(37, 34),  // size   - for sprite clipping
@@ -81,7 +82,7 @@
     // for debugging/exploratory use in console
     window.map = map;
     window.oms = oms;
-  }
+  };
   // randomize some overlapping map data -- more normally we'd load some JSON data instead
   var baseJitter = 2.5;
   var clusterJitterMax = 0.1;

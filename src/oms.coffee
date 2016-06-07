@@ -27,6 +27,7 @@ class @['OverlappingMarkerSpiderfier']
 
   p['nudgeStackedMarkers'] = yes     # yes -> nudge up markers that are perfectly stacked
   p['minNudgeZoomLevel'] = 8
+  p['nudgeRadius'] = 1
   p['markerCountInBaseNudgeLevel'] = 9
 
   p['nearbyDistance'] = 20           # spiderfy markers within this range of the one clicked, in px
@@ -129,8 +130,9 @@ class @['OverlappingMarkerSpiderfier']
           positions[posKey()] = 1
 
         ringLevel = @getNudgeLevel(direction)
-        pos.x = pos.x + Math.sin(twoPi * direction / @['markerCountInBaseNudgeLevel'] / ringLevel) * 24 * ringLevel
-        pos.y = pos.y + Math.cos(twoPi * direction / @['markerCountInBaseNudgeLevel'] / ringLevel) * 24 * ringLevel
+        radius = 20 * @['nudgeRadius'] * ringLevel
+        pos.x = pos.x + Math.sin(twoPi * direction / @['markerCountInBaseNudgeLevel'] / ringLevel) * radius
+        pos.y = pos.y + Math.cos(twoPi * direction / @['markerCountInBaseNudgeLevel'] / ringLevel) * radius
         @nudged = yes
         needsNudge = yes
 
