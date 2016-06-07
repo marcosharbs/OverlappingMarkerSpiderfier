@@ -15,7 +15,7 @@ var config = {
     ],
     output: {
         path:          path.join(__dirname, 'dist'),
-        publicPath:    '/static/',
+        publicPath:    '/dist/',
         filename:      'oms.js',
         library:       'OverlappingMarkerSpiderfier',
         libraryTarget: 'umd',
