@@ -100,10 +100,10 @@ class @['OverlappingMarkerSpiderfier']
     )
 
   p.isNudgingActive = ->
-    @['nudgeStackedMarkers'] and not (@['minNudgeZoomLevel'] and @map.getZoom() < @['minNudgeZoomLevel'])
+    @['nudgeStackedMarkers'] and not (@['minNudgeZoomLevel'] and @map.getZoom() < @['minNudgeZoomLevel']) and not @spiderfied
 
   p.markerChangeListener = (marker, positionChanged) ->
-    if marker['_omsData']? and not marker['_omsData'].nudged and (positionChanged or not marker.getVisible()) and not (@spiderfying? or @unspiderfying?)
+    if marker['_omsData']? and marker['_omsData'].leg and (positionChanged or not marker.getVisible()) and not (@spiderfying? or @unspiderfying?)
       @['unspiderfy'](if positionChanged then marker else null)
 
   p.countsPerLevel = [1,1]
@@ -158,11 +158,10 @@ class @['OverlappingMarkerSpiderfier']
         posHash = getHash(pos);
 
       if needsNudge
-        m['_omsData'] =
-          usualPosition: m['_omsData']?.usualPosition ? m.position
-          nudged:        yes
+        m['_omsData'] = m['_omsData'] ? {}
+        m['_omsData'].usualPosition = m['_omsData']?.usualPosition ? m.position;
         m.setPosition(@ptToLl(pos))
-      else if m['_omsData']? && m['_omsData'].nudged
+      else if m['_omsData']? and not m['_omsData'].leg?
         m.setPosition(m['_omsData'].usualPosition)
         delete m['_omsData']
 
@@ -172,7 +171,7 @@ class @['OverlappingMarkerSpiderfier']
   p.resetNudgedMarkers = ->
     return if not @nudged
     for m in @markers
-      if m['_omsData']? and m['_omsData'].nudged
+      if m['_omsData']? and not m['_omsData'].leg?
         m.setPosition(m['_omsData'].usualPosition)
         delete m['_omsData']
     delete @nudged
@@ -242,13 +241,14 @@ class @['OverlappingMarkerSpiderfier']
       pt
   
   p.spiderListener = (marker, event) ->
-    markerSpiderfied = marker['_omsData']? and not marker['_omsData'].nudged
+    markerSpiderfied = marker['_omsData']? and marker['_omsData'].leg?
     unless markerSpiderfied and @['keepSpiderfied']
-      if this['event'] is 'mouseover'
-        $this = @
-        clear = () -> $this['unspiderfy']()
+      if @['event'] is 'mouseover'
         window.clearTimeout(p.timeout)
-        p.timeout = setTimeout clear, 3000
+        p.timeout = setTimeout(
+          () => @['unspiderfy'](),
+          3000
+        )
       else
         @['unspiderfy']()
     if markerSpiderfied or @map.getStreetView().getVisible() or @map.getMapTypeId() is 'GoogleEarthAPI'  # don't spiderfy in Street View or GE Plugin!
@@ -351,9 +351,9 @@ class @['OverlappingMarkerSpiderfier']
         strokeColor: @['legColors']['usual'][@map.mapTypeId]
         strokeWeight: @['legWeight']
         zIndex: @['usualLegZIndex']
-      marker['_omsData'] =
-        usualPosition: marker['_omsData']?.usualPosition ? marker.position,
-        leg: leg
+      marker['_omsData'] = marker['_omsData'] ? {}
+      marker['_omsData'].usualPosition = marker['_omsData']?.usualPosition ? marker.position
+      marker['_omsData'].leg = leg
 
       if @['spiderfiedShadowColor']
         marker['_omsData'].shadow = new gm.Marker
@@ -382,12 +382,12 @@ class @['OverlappingMarkerSpiderfier']
     @trigger('spiderfy', spiderfiedMarkers, nonNearbyMarkers)
   
   p['unspiderfy'] = (markerNotToMove = null) ->
-    return @ unless @spiderfied?
+    return @ unless @spiderfied? or @nudged?
     @unspiderfying = yes
     unspiderfiedMarkers = []
     nonNearbyMarkers = []
     for marker in @markers
-      if marker['_omsData']? and not marker['_omsData'].nudged
+      if marker['_omsData']? and marker['_omsData'].leg?
         marker['_omsData'].leg.setMap(null)
         marker['_omsData'].shadow?.setMap(null)
         marker.setPosition(marker['_omsData'].usualPosition) unless marker is markerNotToMove
@@ -403,7 +403,7 @@ class @['OverlappingMarkerSpiderfier']
     delete @unspiderfying
     delete @spiderfied
     @trigger('unspiderfy', unspiderfiedMarkers, nonNearbyMarkers)
-    @nudgeAllMarkers() if @nudged
+    @requestNudge() if @nudged
     @  # return self, for chaining
   
   p.ptDistanceSq = (pt1, pt2) -> 

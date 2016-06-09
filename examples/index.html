@@ -38,12 +38,6 @@
       return 'http://chart.googleapis.com/chart?chst=d_map_xpin_letter&chld=pin|+|' +
         color + '|000000|ffff00';
     };
-    var shadow = new gm.MarkerImage(
-      'https://www.google.com/intl/en_ALL/mapfiles/shadow50.png',
-      new gm.Size(37, 34),  // size   - for sprite clipping
-      new gm.Point(0, 0),   // origin - ditto
-      new gm.Point(10, 34)  // anchor - where to meet map location
-    );
 
     oms.addListener('click', function(marker) {
       iw.setContent(marker.desc);
@@ -52,14 +46,12 @@
     oms.addListener('spiderfy', function(markers) {
       for(var i = 0; i < markers.length; i ++) {
         markers[i].setIcon(iconWithColor(spiderfiedColor));
-        markers[i].setShadow(null);
       }
       iw.close();
     });
     oms.addListener('unspiderfy', function(markers) {
       for(var i = 0; i < markers.length; i ++) {
         markers[i].setIcon(iconWithColor(usualColor));
-        markers[i].setShadow(shadow);
       }
     });
 
@@ -73,12 +65,31 @@
         title: datum.h,
         map: map,
         icon: iconWithColor(usualColor),
-        shadow: shadow
       });
       marker.desc = datum.d;
       oms.addMarker(marker);
     }
     map.fitBounds(bounds);
+
+    function b() {
+      var datum = window.mapData[Math.floor(Math.random() * window.mapData.length)];
+      var marker = new gm.Marker({
+        position: new gm.LatLng(datum.lat, datum.lon),
+        map: map,
+      });
+      oms.addMarker(marker);
+
+      // Remove the marker after a set period of time
+      setTimeout(function() {
+        oms.removeMarker(marker);
+        marker.setMap(null);
+        marker = null;
+      }, 3400);
+
+      setTimeout(b, 500 + Math.random() * 1500);
+    }
+
+    b();
 
     // for debugging/exploratory use in console
     window.map = map;
