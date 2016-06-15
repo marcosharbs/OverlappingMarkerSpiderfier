@@ -251,7 +251,12 @@ class @['OverlappingMarkerSpiderfier']
         )
       else
         @['unspiderfy']()
-    if markerSpiderfied or @map.getStreetView().getVisible() or @map.getMapTypeId() is 'GoogleEarthAPI'  # don't spiderfy in Street View or GE Plugin!
+    if (
+      markerSpiderfied or                                      # don't spiderfy an already-spiderfied marker
+      @map.getStreetView().getVisible() or                     # don't spiderfy in Street View
+      @map.getMapTypeId() is 'GoogleEarthAPI' or               # don't spiderfy in GE Plugin!
+      @['minZoomLevel'] and @map.getZoom() < @['minZoomLevel'] # don't spiderfy below the minimum zoom level
+    )
       @trigger('click', marker, event)
     else
       nearbyMarkerData = []
@@ -266,7 +271,8 @@ class @['OverlappingMarkerSpiderfier']
           nearbyMarkerData.push(marker: m, markerPt: mPt)
         else
           nonNearbyMarkers.push(m)
-      if nearbyMarkerData.length is 1  # 1 => the one clicked => none nearby
+      if nearbyMarkerData.length is 1 # If no other markers are nearby the clicked marker
+        # Trigger the default marker click handler
         @trigger('click', marker, event)
       else
         @spiderfy(nearbyMarkerData, nonNearbyMarkers)
@@ -329,9 +335,6 @@ class @['OverlappingMarkerSpiderfier']
           icon: icon
 
   p.spiderfy = (markerData, nonNearbyMarkers) ->
-    if @['minZoomLevel'] and @map.getZoom() < @['minZoomLevel']
-      return no
-
     @spiderfying = yes
     numFeet = markerData.length
     bodyPt = @ptAverage(md.markerPt for md in markerData)
