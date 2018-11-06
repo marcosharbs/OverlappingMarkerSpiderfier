@@ -8,9 +8,9 @@ Note: The Google Maps API v3 must be included *before* this code
 class @['OverlappingMarkerSpiderfier']
   p = @::  # this saves a lot of repetition of .prototype that isn't optimized away
   
-  gm = google.maps
-  ge = gm.event
-  mt = gm.MapTypeId
+  gm = null
+  ge = null
+  mt = null
   twoPi = Math.PI * 2
   
   p['keepSpiderfied']  = no          # yes -> don't unspiderfy when a marker is selected
@@ -62,7 +62,10 @@ class @['OverlappingMarkerSpiderfier']
   
   # Note: it's OK that this constructor comes after the properties, because a function defined by a 
   # function declaration can be used before the function declaration itself
-  constructor: (@map, opts = {}) ->
+  constructor: (@google, @map, opts = {}) ->
+    gm = @google.maps
+    ge = gm.event
+    mt = gm.MapTypeId
     (@[k] = v) for own k, v of opts
     @projHelper = new @constructor.ProjHelper(@map)
     @initMarkerArrays()
