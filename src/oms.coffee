@@ -62,8 +62,8 @@ class @['OverlappingMarkerSpiderfier']
   
   # Note: it's OK that this constructor comes after the properties, because a function defined by a 
   # function declaration can be used before the function declaration itself
-  constructor: (@google, @map, opts = {}) ->
-    gm = @google.maps
+  constructor: (google, @map, opts = {}) ->
+    gm = google.maps
     ge = gm.event
     mt = gm.MapTypeId
     (@[k] = v) for own k, v of opts
@@ -368,7 +368,7 @@ class @['OverlappingMarkerSpiderfier']
           clickable: false
           zIndex: -2
           icon:
-            path: google.maps.SymbolPath.CIRCLE
+            path: gm.SymbolPath.CIRCLE
             fillOpacity: 0.3
             fillColor: @['spiderfiedShadowColor']
             strokeWeight: 0
