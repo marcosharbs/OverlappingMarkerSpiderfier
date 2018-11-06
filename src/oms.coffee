@@ -59,6 +59,11 @@ class @['OverlappingMarkerSpiderfier']
   # Note: it's OK that this constructor comes after the properties, because a function defined by a 
   # function declaration can be used before the function declaration itself
   constructor: (google, @map, opts = {}) ->
+    # the ProjHelper object is just used to get the map's projection
+    @ProjHelper = (map) -> {}
+    @ProjHelper:: = new google.maps.OverlayView()
+    @ProjHelper::['draw'] = ->  # dummy function
+
     gm = google.maps
     ge = gm.event
     mt = gm.MapTypeId
@@ -67,7 +72,7 @@ class @['OverlappingMarkerSpiderfier']
     lcU[mt.TERRAIN] = lcU[mt.ROADMAP]   = '#444'
     lcH[mt.TERRAIN] = lcH[mt.ROADMAP]   = '#f00'
     (@[k] = v) for own k, v of opts
-    @projHelper = new @constructor.ProjHelper(@map)
+    @projHelper = new @constructor.ProjHelper(gm, @map)
     @initMarkerArrays()
     @listeners = {}
     for e in ['click', 'zoom_changed', 'maptypeid_changed']
@@ -439,10 +444,6 @@ class @['OverlappingMarkerSpiderfier']
     return arr.indexOf(obj) if arr.indexOf?
     (return i if o is obj) for o, i in arr
     -1
-  
-  # the ProjHelper object is just used to get the map's projection
-  @ProjHelper = (map) -> @setMap(map)
-  @ProjHelper:: = new gm.OverlayView()
-  @ProjHelper::['draw'] = ->  # dummy function
+ 
 
 module.exports = @['OverlappingMarkerSpiderfier']
