@@ -72,7 +72,7 @@ class @['OverlappingMarkerSpiderfier']
     lcU[mt.TERRAIN] = lcU[mt.ROADMAP]   = '#444'
     lcH[mt.TERRAIN] = lcH[mt.ROADMAP]   = '#f00'
     (@[k] = v) for own k, v of opts
-    @projHelper = new @constructor.ProjHelper(@map)
+    @projHelper = new @ProjHelper(@map)
     @initMarkerArrays()
     @listeners = {}
     for e in ['click', 'zoom_changed', 'maptypeid_changed']
