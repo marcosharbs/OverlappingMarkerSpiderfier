@@ -55,10 +55,6 @@ class @['OverlappingMarkerSpiderfier']
   
   lcU = p['legColors']['usual']
   lcH = p['legColors']['highlighted']
-  lcU[mt.HYBRID]  = lcU[mt.SATELLITE] = '#fff'
-  lcH[mt.HYBRID]  = lcH[mt.SATELLITE] = '#f00'
-  lcU[mt.TERRAIN] = lcU[mt.ROADMAP]   = '#444'
-  lcH[mt.TERRAIN] = lcH[mt.ROADMAP]   = '#f00'
   
   # Note: it's OK that this constructor comes after the properties, because a function defined by a 
   # function declaration can be used before the function declaration itself
@@ -66,6 +62,10 @@ class @['OverlappingMarkerSpiderfier']
     gm = google.maps
     ge = gm.event
     mt = gm.MapTypeId
+    lcU[mt.HYBRID]  = lcU[mt.SATELLITE] = '#fff'
+    lcH[mt.HYBRID]  = lcH[mt.SATELLITE] = '#f00'
+    lcU[mt.TERRAIN] = lcU[mt.ROADMAP]   = '#444'
+    lcH[mt.TERRAIN] = lcH[mt.ROADMAP]   = '#f00'
     (@[k] = v) for own k, v of opts
     @projHelper = new @constructor.ProjHelper(@map)
     @initMarkerArrays()
